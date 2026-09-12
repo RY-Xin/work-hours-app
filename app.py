@@ -368,7 +368,7 @@ div[data-testid="stFormSubmitButton"] button:hover {
 @media (max-width: 600px) {
 
     .block-container {
-        padding-top: 0.9rem;
+        padding-top: 3.5rem;
         padding-left: 13px;
         padding-right: 13px;
     }
