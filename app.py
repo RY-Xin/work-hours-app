@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import html
 from supabase import create_client, Client
 
 
@@ -16,213 +17,180 @@ st.set_page_config(
 
 
 # =========================================================
-# Custom CSS
+# CSS
 # =========================================================
 
 st.markdown(
     """
-    <style>
+<style>
 
-    /* ---------- General ---------- */
+.stApp {
+    background: #f7f8fa;
+}
 
-    .stApp {
-        background: #f7f8fa;
-    }
+.block-container {
+    max-width: 680px;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+/* App header */
+
+.app-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.app-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+/* Period */
+
+.period-label {
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+}
+
+.period-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+}
+
+/* Summary */
+
+.summary-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 20px;
+    margin-top: 18px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.summary-label {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.summary-value {
+    font-size: 34px;
+    font-weight: 750;
+    line-height: 1.15;
+    color: #111827;
+    margin-top: 2px;
+}
+
+.summary-secondary {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 6px;
+}
+
+/* Section */
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+/* Record */
+
+.record-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.025);
+}
+
+.record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.record-date {
+    font-size: 16px;
+    font-weight: 650;
+    color: #111827;
+}
+
+.record-hours {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.record-time {
+    font-size: 15px;
+    color: #374151;
+    margin-top: 8px;
+}
+
+.record-detail {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
 
     .block-container {
-        max-width: 680px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-top: 1rem;
     }
-
-    h1, h2, h3 {
-        letter-spacing: -0.3px;
-    }
-
-    /* ---------- Hide Streamlit extras ---------- */
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    /* ---------- App Header ---------- */
 
     .app-title {
-        font-size: 30px;
-        font-weight: 700;
-        margin-bottom: 2px;
-        color: #111827;
+        font-size: 27px;
     }
-
-    .app-subtitle {
-        font-size: 14px;
-        color: #6b7280;
-        margin-bottom: 22px;
-    }
-
-    /* ---------- Pay Period ---------- */
-
-    .period-label {
-        font-size: 13px;
-        color: #6b7280;
-        margin-bottom: 4px;
-        font-weight: 500;
-    }
-
-    .period-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #111827;
-        margin-bottom: 14px;
-    }
-
-    /* ---------- Summary Card ---------- */
 
     .summary-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        padding: 20px;
-        margin-top: 8px;
-        margin-bottom: 28px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    }
-
-    .summary-label {
-        font-size: 13px;
-        color: #6b7280;
-        margin-bottom: 3px;
+        padding: 18px;
+        border-radius: 16px;
     }
 
     .summary-value {
-        font-size: 34px;
-        line-height: 1.1;
-        font-weight: 750;
-        color: #111827;
+        font-size: 32px;
     }
-
-    .summary-secondary {
-        margin-top: 7px;
-        font-size: 14px;
-        color: #6b7280;
-    }
-
-    /* ---------- Section Title ---------- */
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #111827;
-        margin-top: 4px;
-        margin-bottom: 12px;
-    }
-
-    /* ---------- Record Card ---------- */
 
     .record-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 16px 18px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.025);
+        padding: 15px 16px;
+        border-radius: 15px;
     }
 
-    .record-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
+}
 
-    .record-date {
-        font-size: 16px;
-        font-weight: 650;
-        color: #111827;
-    }
-
-    .record-hours {
-        font-size: 17px;
-        font-weight: 700;
-        color: #111827;
-        white-space: nowrap;
-    }
-
-    .record-time {
-        margin-top: 8px;
-        font-size: 15px;
-        color: #374151;
-    }
-
-    .record-detail {
-        margin-top: 5px;
-        font-size: 13px;
-        color: #6b7280;
-    }
-
-    /* ---------- Add Record ---------- */
-
-    .add-title {
-        font-size: 19px;
-        font-weight: 700;
-        color: #111827;
-        margin-bottom: 8px;
-    }
-
-    /* ---------- Mobile ---------- */
-
-    @media (max-width: 600px) {
-
-        .block-container {
-            padding-left: 14px;
-            padding-right: 14px;
-            padding-top: 1.2rem;
-        }
-
-        .app-title {
-            font-size: 27px;
-        }
-
-        .period-title {
-            font-size: 20px;
-        }
-
-        .summary-card {
-            border-radius: 16px;
-            padding: 18px;
-        }
-
-        .summary-value {
-            font-size: 32px;
-        }
-
-        .record-card {
-            padding: 15px 16px;
-            border-radius: 15px;
-        }
-
-        .record-date {
-            font-size: 15px;
-        }
-
-        .record-hours {
-            font-size: 16px;
-        }
-
-    }
-
-    </style>
-    """,
+</style>
+""",
     unsafe_allow_html=True,
 )
 
 
 # =========================================================
-# Supabase Connection
+# Supabase
 # =========================================================
 
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -247,20 +215,15 @@ PAY_PERIOD_LENGTH = 14
 # =========================================================
 
 def normalize_time(value):
-    """Convert Supabase time string to HH:MM."""
     if value is None:
         return None
 
     value = str(value)
 
-    if len(value) >= 5:
-        return value[:5]
-
-    return value
+    return value[:5]
 
 
 def calculate_hours(start_time, end_time, break_minutes):
-    """Calculate total worked hours."""
 
     start = datetime.datetime.combine(
         datetime.date.today(),
@@ -275,60 +238,62 @@ def calculate_hours(start_time, end_time, break_minutes):
     if end <= start:
         end += datetime.timedelta(days=1)
 
-    total_minutes = (end - start).total_seconds() / 60
-    total_minutes -= break_minutes
+    minutes = (end - start).total_seconds() / 60
 
-    return max(total_minutes / 60, 0)
+    minutes -= break_minutes
 
-
-def format_date(date_value):
-    """Format date like Mon, Sep 07."""
-
-    if isinstance(date_value, str):
-        date_value = datetime.date.fromisoformat(date_value)
-
-    return date_value.strftime("%a, %b %d")
+    return max(minutes / 60, 0)
 
 
-def format_time(time_value):
-    """Format time like 5:20 AM."""
+def format_date(value):
 
-    if isinstance(time_value, str):
-        time_value = datetime.time.fromisoformat(time_value)
+    if isinstance(value, str):
+        value = datetime.date.fromisoformat(value)
 
-    return time_value.strftime("%I:%M %p").lstrip("0")
+    return value.strftime("%a, %b %d")
+
+
+def format_time(value):
+
+    if isinstance(value, str):
+        value = datetime.time.fromisoformat(value)
+
+    return value.strftime("%I:%M %p").lstrip("0")
 
 
 def get_pay_period(offset=0):
-    """
-    Get pay period based on 14-day periods.
-
-    offset = 0  -> current period
-    offset = -1 -> previous period
-    offset = 1  -> next period
-    """
 
     today = datetime.date.today()
 
-    days_since_start = (today - PAY_PERIOD_START).days
+    days_since_start = (
+        today - PAY_PERIOD_START
+    ).days
 
-    current_period_index = days_since_start // PAY_PERIOD_LENGTH
-
-    period_index = current_period_index + offset
-
-    start_date = PAY_PERIOD_START + datetime.timedelta(
-        days=period_index * PAY_PERIOD_LENGTH
+    current_index = (
+        days_since_start // PAY_PERIOD_LENGTH
     )
 
-    end_date = start_date + datetime.timedelta(
-        days=PAY_PERIOD_LENGTH - 1
+    period_index = current_index + offset
+
+    start_date = (
+        PAY_PERIOD_START
+        + datetime.timedelta(
+            days=period_index * PAY_PERIOD_LENGTH
+        )
+    )
+
+    end_date = (
+        start_date
+        + datetime.timedelta(
+            days=PAY_PERIOD_LENGTH - 1
+        )
     )
 
     return start_date, end_date
 
 
 # =========================================================
-# Supabase CRUD
+# Database Functions
 # =========================================================
 
 def add_work_session(
@@ -338,6 +303,7 @@ def add_work_session(
     break_minutes,
     notes
 ):
+
     total_hours = calculate_hours(
         start_time,
         end_time,
@@ -353,31 +319,56 @@ def add_work_session(
         "notes": notes.strip() if notes else None,
     }
 
-    supabase.table("work_sessions").insert(data).execute()
+    supabase.table(
+        "work_sessions"
+    ).insert(data).execute()
 
 
-def get_work_history():
+def get_period_records(
+    start_date,
+    end_date
+):
+
     response = (
         supabase
         .table("work_sessions")
         .select("*")
-        .order("work_date", desc=True)
-        .order("start_time", desc=True)
+        .gte(
+            "work_date",
+            start_date.isoformat()
+        )
+        .lte(
+            "work_date",
+            end_date.isoformat()
+        )
+        .order(
+            "work_date",
+            desc=False
+        )
+        .order(
+            "start_time",
+            desc=False
+        )
         .execute()
     )
 
     return response.data or []
 
 
-def get_period_records(start_date, end_date):
+def get_work_history():
+
     response = (
         supabase
         .table("work_sessions")
         .select("*")
-        .gte("work_date", start_date.isoformat())
-        .lte("work_date", end_date.isoformat())
-        .order("work_date", desc=False)
-        .order("start_time", desc=False)
+        .order(
+            "work_date",
+            desc=True
+        )
+        .order(
+            "start_time",
+            desc=True
+        )
         .execute()
     )
 
@@ -392,6 +383,7 @@ def update_work_session(
     break_minutes,
     notes
 ):
+
     total_hours = calculate_hours(
         start_time,
         end_time,
@@ -417,6 +409,7 @@ def update_work_session(
 
 
 def delete_work_session(record_id):
+
     (
         supabase
         .table("work_sessions")
@@ -427,15 +420,14 @@ def delete_work_session(record_id):
 
 
 # =========================================================
-# App Header
+# Header
 # =========================================================
 
-st.markdown(
+st.html(
     """
-    <div class="app-title">⏱️ Work Hours</div>
-    <div class="app-subtitle">Simple work time tracking</div>
-    """,
-    unsafe_allow_html=True,
+<div class="app-title">⏱️ Work Hours</div>
+<div class="app-subtitle">Simple work time tracking</div>
+"""
 )
 
 
@@ -447,74 +439,78 @@ if "period_offset" not in st.session_state:
     st.session_state.period_offset = 0
 
 
-nav_col1, nav_col2, nav_col3 = st.columns(
-    [1, 2, 1],
-    vertical_alignment="center"
+col1, col2, col3 = st.columns(
+    [1, 2, 1]
 )
 
 
-with nav_col1:
-    if st.button("‹ Previous", use_container_width=True):
+with col1:
+
+    if st.button(
+        "‹ Previous",
+        use_container_width=True
+    ):
         st.session_state.period_offset -= 1
         st.rerun()
 
 
-with nav_col2:
+with col2:
+
     start_date, end_date = get_pay_period(
         st.session_state.period_offset
     )
 
-    st.markdown(
+    st.html(
         f"""
-        <div style="
-            text-align:center;
-            font-size:13px;
-            color:#6b7280;
-            padding-top:7px;
-        ">
-            Pay Period
-        </div>
-
-        <div style="
-            text-align:center;
-            font-size:17px;
-            font-weight:700;
-            color:#111827;
-            padding-top:2px;
-        ">
-            {start_date.strftime("%b %d")}
-            –
-            {end_date.strftime("%b %d, %Y")}
-        </div>
-        """,
-        unsafe_allow_html=True,
+<div class="period-label">Pay Period</div>
+<div class="period-title">
+{start_date.strftime("%b %d")}
+–
+{end_date.strftime("%b %d, %Y")}
+</div>
+"""
     )
 
 
-with nav_col3:
-    if st.button("Next ›", use_container_width=True):
+with col3:
+
+    if st.button(
+        "Next ›",
+        use_container_width=True
+    ):
         st.session_state.period_offset += 1
         st.rerun()
 
 
 # =========================================================
-# Current Period Records
+# Load Current Period
 # =========================================================
 
 try:
+
     period_records = get_period_records(
         start_date,
         end_date
     )
 
 except Exception as e:
-    st.error("Unable to load work records from Supabase.")
+
+    st.error(
+        "Unable to load work records from Supabase."
+    )
+
     st.caption(str(e))
+
     st.stop()
 
 
 total_hours = sum(
-    float(record.get("total_hours", 0) or 0)
+    float(
+        record.get(
+            "total_hours",
+            0
+        ) or 0
+    )
     for record in period_records
 )
 
@@ -522,28 +518,28 @@ days_worked = len(period_records)
 
 
 # =========================================================
-# Summary Card
+# Summary
 # =========================================================
 
-st.markdown(
+st.html(
     f"""
-    <div class="summary-card">
+<div class="summary-card">
 
-        <div class="summary-label">
-            Total Hours
-        </div>
+<div class="summary-label">
+Total Hours
+</div>
 
-        <div class="summary-value">
-            {total_hours:.2f} h
-        </div>
+<div class="summary-value">
+{total_hours:.2f} h
+</div>
 
-        <div class="summary-secondary">
-            {days_worked} day{"s" if days_worked != 1 else ""} worked
-        </div>
+<div class="summary-secondary">
+{days_worked}
+{"day" if days_worked == 1 else "days"} worked
+</div>
 
-    </div>
-    """,
-    unsafe_allow_html=True,
+</div>
+"""
 )
 
 
@@ -551,15 +547,16 @@ st.markdown(
 # Daily Hours
 # =========================================================
 
-st.markdown(
-    '<div class="section-title">Daily Hours</div>',
-    unsafe_allow_html=True,
+st.html(
+    '<div class="section-title">Daily Hours</div>'
 )
 
 
 if not period_records:
 
-    st.info("No work records for this pay period yet.")
+    st.info(
+        "No work records for this pay period yet."
+    )
 
 else:
 
@@ -570,89 +567,112 @@ else:
         )
 
         start_time = datetime.time.fromisoformat(
-            normalize_time(record["start_time"])
+            normalize_time(
+                record["start_time"]
+            )
         )
 
         end_time = datetime.time.fromisoformat(
-            normalize_time(record["end_time"])
+            normalize_time(
+                record["end_time"]
+            )
         )
 
         hours = float(
-            record.get("total_hours", 0) or 0
+            record.get(
+                "total_hours",
+                0
+            ) or 0
         )
 
         break_minutes = int(
-            record.get("break_minutes", 0) or 0
+            record.get(
+                "break_minutes",
+                0
+            ) or 0
         )
 
         notes = record.get("notes")
 
-        st.markdown(
+        notes_html = ""
+
+        if notes:
+
+            safe_notes = html.escape(
+                str(notes)
+            )
+
+            notes_html = (
+                f'<div class="record-detail">'
+                f'Notes: {safe_notes}'
+                f'</div>'
+            )
+
+        st.html(
             f"""
-            <div class="record-card">
+<div class="record-card">
 
-                <div class="record-header">
+<div class="record-header">
 
-                    <div class="record-date">
-                        {format_date(work_date)}
-                    </div>
+<div class="record-date">
+{format_date(work_date)}
+</div>
 
-                    <div class="record-hours">
-                        {hours:.2f} h
-                    </div>
+<div class="record-hours">
+{hours:.2f} h
+</div>
 
-                </div>
+</div>
 
-                <div class="record-time">
-                    {format_time(start_time)}
-                    →
-                    {format_time(end_time)}
-                </div>
+<div class="record-time">
+{format_time(start_time)}
+→
+{format_time(end_time)}
+</div>
 
-                <div class="record-detail">
-                    Break: {break_minutes} min
-                </div>
+<div class="record-detail">
+Break: {break_minutes} min
+</div>
 
-                {
-                    f'<div class="record-detail">Notes: {notes}</div>'
-                    if notes
-                    else ""
-                }
+{notes_html}
 
-            </div>
-            """,
-            unsafe_allow_html=True,
+</div>
+"""
         )
 
         edit_col, delete_col = st.columns(2)
 
         with edit_col:
 
-            edit_key = f"edit_{record['id']}"
-
             if st.button(
                 "✏️ Edit",
-                key=edit_key,
+                key=f"edit_{record['id']}",
                 use_container_width=True
             ):
-                st.session_state.editing_id = record["id"]
+
+                st.session_state.editing_id = (
+                    record["id"]
+                )
+
                 st.rerun()
 
         with delete_col:
 
-            delete_key = f"delete_{record['id']}"
-
             if st.button(
                 "🗑️ Delete",
-                key=delete_key,
+                key=f"delete_{record['id']}",
                 use_container_width=True
             ):
-                st.session_state.deleting_id = record["id"]
+
+                st.session_state.deleting_id = (
+                    record["id"]
+                )
+
                 st.rerun()
 
 
 # =========================================================
-# Edit Record
+# Edit
 # =========================================================
 
 if "editing_id" in st.session_state:
@@ -661,9 +681,9 @@ if "editing_id" in st.session_state:
 
     editing_record = next(
         (
-            record
-            for record in period_records
-            if record["id"] == editing_id
+            r
+            for r in period_records
+            if r["id"] == editing_id
         ),
         None
     )
@@ -672,9 +692,10 @@ if "editing_id" in st.session_state:
 
         st.divider()
 
-        st.markdown(
-            '<div class="section-title">Edit Work Record</div>',
-            unsafe_allow_html=True,
+        st.html(
+            '<div class="section-title">'
+            'Edit Work Record'
+            '</div>'
         )
 
         edit_date = datetime.date.fromisoformat(
@@ -694,7 +715,10 @@ if "editing_id" in st.session_state:
         )
 
         edit_break = int(
-            editing_record.get("break_minutes", 0) or 0
+            editing_record.get(
+                "break_minutes",
+                0
+            ) or 0
         )
 
         edit_notes = (
@@ -765,10 +789,6 @@ if "editing_id" in st.session_state:
 
                     del st.session_state.editing_id
 
-                    st.success(
-                        "Work record updated."
-                    )
-
                     st.rerun()
 
                 except Exception as e:
@@ -782,6 +802,7 @@ if "editing_id" in st.session_state:
             if cancel_edit:
 
                 del st.session_state.editing_id
+
                 st.rerun()
 
 
@@ -791,13 +812,15 @@ if "editing_id" in st.session_state:
 
 if "deleting_id" in st.session_state:
 
-    deleting_id = st.session_state.deleting_id
+    deleting_id = (
+        st.session_state.deleting_id
+    )
 
     deleting_record = next(
         (
-            record
-            for record in period_records
-            if record["id"] == deleting_id
+            r
+            for r in period_records
+            if r["id"] == deleting_id
         ),
         None
     )
@@ -816,7 +839,7 @@ if "deleting_id" in st.session_state:
 
             if st.button(
                 "Yes, Delete",
-                key=f"confirm_delete_{deleting_id}",
+                key=f"confirm_{deleting_id}",
                 use_container_width=True
             ):
 
@@ -827,10 +850,6 @@ if "deleting_id" in st.session_state:
                     )
 
                     del st.session_state.deleting_id
-
-                    st.success(
-                        "Work record deleted."
-                    )
 
                     st.rerun()
 
@@ -846,11 +865,12 @@ if "deleting_id" in st.session_state:
 
             if st.button(
                 "Cancel",
-                key=f"cancel_delete_{deleting_id}",
+                key=f"cancel_{deleting_id}",
                 use_container_width=True
             ):
 
                 del st.session_state.deleting_id
+
                 st.rerun()
 
 
@@ -865,9 +885,10 @@ with st.expander(
     expanded=False
 ):
 
-    st.markdown(
-        '<div class="add-title">New Work Record</div>',
-        unsafe_allow_html=True,
+    st.html(
+        '<div class="section-title">'
+        'New Work Record'
+        '</div>'
     )
 
     with st.form("add_work_form"):
@@ -907,15 +928,15 @@ with st.expander(
 
         if add_submit:
 
-            try:
+            if add_end == add_start:
 
-                if add_end == add_start:
+                st.error(
+                    "Start time and end time cannot be the same."
+                )
 
-                    st.error(
-                        "Start time and end time cannot be the same."
-                    )
+            else:
 
-                else:
+                try:
 
                     add_work_session(
                         add_date,
@@ -931,17 +952,17 @@ with st.expander(
 
                     st.rerun()
 
-            except Exception as e:
+                except Exception as e:
 
-                st.error(
-                    "Unable to add the work record."
-                )
+                    st.error(
+                        "Unable to add the work record."
+                    )
 
-                st.caption(str(e))
+                    st.caption(str(e))
 
 
 # =========================================================
-# Previous Work History
+# Work History
 # =========================================================
 
 try:
@@ -951,9 +972,11 @@ try:
 except Exception as e:
 
     all_records = []
+
     st.error(
         "Unable to load work history from Supabase."
     )
+
     st.caption(str(e))
 
 
@@ -966,8 +989,11 @@ for record in all_records:
     )
 
     if not (
-        start_date <= record_date <= end_date
+        start_date
+        <= record_date
+        <= end_date
     ):
+
         previous_records.append(record)
 
 
@@ -993,56 +1019,75 @@ with st.expander(
             )
 
             start_time = datetime.time.fromisoformat(
-                normalize_time(record["start_time"])
+                normalize_time(
+                    record["start_time"]
+                )
             )
 
             end_time = datetime.time.fromisoformat(
-                normalize_time(record["end_time"])
+                normalize_time(
+                    record["end_time"]
+                )
             )
 
             hours = float(
-                record.get("total_hours", 0) or 0
+                record.get(
+                    "total_hours",
+                    0
+                ) or 0
             )
 
             break_minutes = int(
-                record.get("break_minutes", 0) or 0
+                record.get(
+                    "break_minutes",
+                    0
+                ) or 0
             )
 
             notes = record.get("notes")
 
-            st.markdown(
+            notes_html = ""
+
+            if notes:
+
+                safe_notes = html.escape(
+                    str(notes)
+                )
+
+                notes_html = (
+                    f'<div class="record-detail">'
+                    f'Notes: {safe_notes}'
+                    f'</div>'
+                )
+
+            st.html(
                 f"""
-                <div class="record-card">
+<div class="record-card">
 
-                    <div class="record-header">
+<div class="record-header">
 
-                        <div class="record-date">
-                            {format_date(work_date)}
-                        </div>
+<div class="record-date">
+{format_date(work_date)}
+</div>
 
-                        <div class="record-hours">
-                            {hours:.2f} h
-                        </div>
+<div class="record-hours">
+{hours:.2f} h
+</div>
 
-                    </div>
+</div>
 
-                    <div class="record-time">
-                        {format_time(start_time)}
-                        →
-                        {format_time(end_time)}
-                    </div>
+<div class="record-time">
+{format_time(start_time)}
+→
+{format_time(end_time)}
+</div>
 
-                    <div class="record-detail">
-                        Break: {break_minutes} min
-                    </div>
+<div class="record-detail">
+Break: {break_minutes} min
+</div>
 
-                    {
-                        f'<div class="record-detail">Notes: {notes}</div>'
-                        if notes
-                        else ""
-                    }
+{notes_html}
 
-                </div>
-                """,
-                unsafe_allow_html=True,
+</div>
+"""
             )
