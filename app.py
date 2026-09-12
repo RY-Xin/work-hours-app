@@ -1,9 +1,7 @@
 import streamlit as st
-import sqlite3
+from supabase import create_client, Client
 from datetime import datetime, date, time, timedelta
 
-
-DB_NAME = "work_hours.db"
 
 # =========================================================
 # Pay Period Settings
@@ -17,27 +15,53 @@ PAY_PERIOD_LENGTH = 14
 
 
 # =========================================================
-# Database
+# Supabase Connection
 # =========================================================
 
-def init_db():
-    conn = sqlite3.connect(DB_NAME)
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS work_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            work_date TEXT NOT NULL,
-            start_time TEXT NOT NULL,
-            end_time TEXT NOT NULL,
-            break_minutes INTEGER DEFAULT 0,
-            total_hours REAL NOT NULL,
-            notes TEXT
-        )
-    """)
+supabase: Client = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
 
-    conn.commit()
-    conn.close()
 
+# =========================================================
+# Supabase Helpers
+# =========================================================
+
+def normalize_time(value):
+    """
+    Supabase may return time as HH:MM:SS.
+    The app only needs HH:MM.
+    """
+    if value is None:
+        return ""
+
+    return str(value)[:5]
+
+
+def normalize_record(row):
+    """
+    Convert a Supabase row into the same tuple structure
+    used by the original SQLite version.
+    """
+
+    return (
+        row["id"],
+        str(row["work_date"]),
+        normalize_time(row["start_time"]),
+        normalize_time(row["end_time"]),
+        row.get("break_minutes") or 0,
+        float(row["total_hours"]),
+        row.get("notes") or "",
+    )
+
+
+# =========================================================
+# Database Operations
+# =========================================================
 
 def add_work_session(
     work_date,
@@ -47,86 +71,71 @@ def add_work_session(
     total_hours,
     notes
 ):
-    conn = sqlite3.connect(DB_NAME)
 
-    conn.execute("""
-        INSERT INTO work_sessions
-        (
-            work_date,
-            start_time,
-            end_time,
-            break_minutes,
-            total_hours,
-            notes
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        work_date,
-        start_time,
-        end_time,
-        break_minutes,
-        total_hours,
-        notes
-    ))
+    response = (
+        supabase
+        .table("work_sessions")
+        .insert({
+            "work_date": work_date,
+            "start_time": start_time,
+            "end_time": end_time,
+            "break_minutes": break_minutes,
+            "total_hours": total_hours,
+            "notes": notes or None,
+        })
+        .execute()
+    )
 
-    conn.commit()
-    conn.close()
+    return response
 
 
 def get_work_history():
-    conn = sqlite3.connect(DB_NAME)
 
-    cursor = conn.cursor()
+    response = (
+        supabase
+        .table("work_sessions")
+        .select("*")
+        .order("work_date", desc=True)
+        .order("start_time", desc=True)
+        .execute()
+    )
 
-    cursor.execute("""
-        SELECT
-            id,
-            work_date,
-            start_time,
-            end_time,
-            break_minutes,
-            total_hours,
-            notes
-        FROM work_sessions
-        ORDER BY work_date DESC, start_time DESC
-    """)
+    rows = response.data or []
 
-    records = cursor.fetchall()
-
-    conn.close()
-
-    return records
+    return [
+        normalize_record(row)
+        for row in rows
+    ]
 
 
-def get_period_records(period_start, period_end):
+def get_period_records(
+    period_start,
+    period_end
+):
 
-    conn = sqlite3.connect(DB_NAME)
+    response = (
+        supabase
+        .table("work_sessions")
+        .select("*")
+        .gte(
+            "work_date",
+            period_start.isoformat()
+        )
+        .lte(
+            "work_date",
+            period_end.isoformat()
+        )
+        .order("work_date")
+        .order("start_time")
+        .execute()
+    )
 
-    cursor = conn.cursor()
+    rows = response.data or []
 
-    cursor.execute("""
-        SELECT
-            id,
-            work_date,
-            start_time,
-            end_time,
-            break_minutes,
-            total_hours,
-            notes
-        FROM work_sessions
-        WHERE work_date >= ?
-          AND work_date <= ?
-        ORDER BY work_date ASC, start_time ASC
-    """, (
-        period_start.strftime("%Y-%m-%d"),
-        period_end.strftime("%Y-%m-%d")
-    ))
-
-    records = cursor.fetchall()
-
-    conn.close()
-
-    return records
+    return [
+        normalize_record(row)
+        for row in rows
+    ]
 
 
 def update_work_session(
@@ -138,50 +147,47 @@ def update_work_session(
     total_hours,
     notes
 ):
-    conn = sqlite3.connect(DB_NAME)
 
-    conn.execute("""
-        UPDATE work_sessions
-        SET
-            work_date = ?,
-            start_time = ?,
-            end_time = ?,
-            break_minutes = ?,
-            total_hours = ?,
-            notes = ?
-        WHERE id = ?
-    """, (
-        work_date,
-        start_time,
-        end_time,
-        break_minutes,
-        total_hours,
-        notes,
-        record_id
-    ))
+    response = (
+        supabase
+        .table("work_sessions")
+        .update({
+            "work_date": work_date,
+            "start_time": start_time,
+            "end_time": end_time,
+            "break_minutes": break_minutes,
+            "total_hours": total_hours,
+            "notes": notes or None,
+        })
+        .eq("id", record_id)
+        .execute()
+    )
 
-    conn.commit()
-    conn.close()
+    return response
 
 
 def delete_work_session(record_id):
 
-    conn = sqlite3.connect(DB_NAME)
+    response = (
+        supabase
+        .table("work_sessions")
+        .delete()
+        .eq("id", record_id)
+        .execute()
+    )
 
-    conn.execute("""
-        DELETE FROM work_sessions
-        WHERE id = ?
-    """, (record_id,))
-
-    conn.commit()
-    conn.close()
+    return response
 
 
 # =========================================================
 # Calculate Hours
 # =========================================================
 
-def calculate_hours(start_time, end_time, break_minutes):
+def calculate_hours(
+    start_time,
+    end_time,
+    break_minutes
+):
 
     start_datetime = datetime.combine(
         date.today(),
@@ -218,7 +224,9 @@ def get_pay_period(target_date):
         target_date - PAY_PERIOD_START
     ).days
 
-    period_number = days_since_start // PAY_PERIOD_LENGTH
+    period_number = (
+        days_since_start // PAY_PERIOD_LENGTH
+    )
 
     period_start = (
         PAY_PERIOD_START
@@ -235,7 +243,10 @@ def get_pay_period(target_date):
     return period_start, period_end
 
 
-def format_period(period_start, period_end):
+def format_period(
+    period_start,
+    period_end
+):
 
     return (
         f"{period_start.strftime('%b %d')} "
@@ -245,10 +256,8 @@ def format_period(period_start, period_end):
 
 
 # =========================================================
-# App Initialization
+# App
 # =========================================================
-
-init_db()
 
 st.title("⏱ Work Hours Tracker")
 
@@ -259,34 +268,44 @@ st.title("⏱ Work Hours Tracker")
 
 today = date.today()
 
+
 # Initialize selected pay period
 if "period_offset" not in st.session_state:
+
     st.session_state.period_offset = 0
 
 
 # Get current pay period
-current_start, current_end = get_pay_period(today)
+current_start, current_end = get_pay_period(
+    today
+)
 
 
 # Apply navigation offset
 selected_start = (
     current_start
     + timedelta(
-        days=st.session_state.period_offset
-        * PAY_PERIOD_LENGTH
+        days=(
+            st.session_state.period_offset
+            * PAY_PERIOD_LENGTH
+        )
     )
 )
 
 selected_end = (
     selected_start
-    + timedelta(days=PAY_PERIOD_LENGTH - 1)
+    + timedelta(
+        days=PAY_PERIOD_LENGTH - 1
+    )
 )
 
 
 st.subheader("Pay Period")
 
 
-# Navigation buttons
+# =========================================================
+# Navigation Buttons
+# =========================================================
 
 left_col, middle_col, right_col = st.columns(
     [1, 2, 1]
@@ -305,9 +324,14 @@ with left_col:
 with middle_col:
 
     st.markdown(
-        f"<h3 style='text-align: center;'>"
-        f"{format_period(selected_start, selected_end)}"
-        f"</h3>",
+        f"""
+        <h3 style='text-align: center;'>
+            {format_period(
+                selected_start,
+                selected_end
+            )}
+        </h3>
+        """,
         unsafe_allow_html=True
     )
 
@@ -321,7 +345,9 @@ with right_col:
         st.rerun()
 
 
-# Return to current period
+# =========================================================
+# Return to Current Period
+# =========================================================
 
 if st.session_state.period_offset != 0:
 
@@ -336,10 +362,22 @@ if st.session_state.period_offset != 0:
 # Pay Period Summary
 # =========================================================
 
-period_records = get_period_records(
-    selected_start,
-    selected_end
-)
+try:
+
+    period_records = get_period_records(
+        selected_start,
+        selected_end
+    )
+
+except Exception:
+
+    st.error(
+        "Unable to load work records from Supabase. "
+        "Please check your Supabase connection and Secrets."
+    )
+
+    period_records = []
+
 
 total_period_hours = sum(
     record[5]
@@ -349,12 +387,14 @@ total_period_hours = sum(
 
 col1, col2 = st.columns(2)
 
+
 with col1:
 
     st.metric(
         "Total Hours",
         f"{total_period_hours:.2f} h"
     )
+
 
 with col2:
 
@@ -365,7 +405,7 @@ with col2:
 
 
 # =========================================================
-# Daily Hours for Selected Pay Period
+# Daily Hours
 # =========================================================
 
 st.markdown("### Daily Hours")
@@ -382,27 +422,33 @@ if period_records:
         total_hours_value = record[5]
         notes_value = record[6]
 
+
         col1, col2, col3 = st.columns(
             [1.5, 2, 1]
         )
+
 
         col1.write(
             f"**{work_date_str}**"
         )
 
+
         col2.write(
             f"{start_time_str} → {end_time_str}"
         )
 
+
         col3.write(
             f"**{total_hours_value:.2f} h**"
         )
+
 
         if break_minutes_value > 0:
 
             st.caption(
                 f"Break: {break_minutes_value} min"
             )
+
 
         if notes_value:
 
@@ -431,15 +477,18 @@ work_date = st.date_input(
     value=today
 )
 
+
 start_time = st.time_input(
     "Start Time",
     value=time(5, 30)
 )
 
+
 end_time = st.time_input(
     "End Time",
     value=time(14, 0)
 )
+
 
 break_minutes = st.number_input(
     "Break (minutes)",
@@ -448,13 +497,16 @@ break_minutes = st.number_input(
     step=15
 )
 
+
 notes = st.text_input(
     "Notes",
     placeholder="Optional"
 )
 
 
-# Preview total hours
+# =========================================================
+# Preview Total Hours
+# =========================================================
 
 total_hours = calculate_hours(
     start_time,
@@ -469,25 +521,37 @@ st.metric(
 )
 
 
+# =========================================================
+# Add Record
+# =========================================================
+
 if st.button(
     "Add Record",
     type="primary"
 ):
 
-    add_work_session(
-        work_date.strftime("%Y-%m-%d"),
-        start_time.strftime("%H:%M"),
-        end_time.strftime("%H:%M"),
-        break_minutes,
-        total_hours,
-        notes
-    )
+    try:
 
-    st.success(
-        "Work record added!"
-    )
+        add_work_session(
+            work_date.isoformat(),
+            start_time.strftime("%H:%M"),
+            end_time.strftime("%H:%M"),
+            break_minutes,
+            total_hours,
+            notes
+        )
 
-    st.rerun()
+        st.success(
+            "Work record added!"
+        )
+
+        st.rerun()
+
+    except Exception as e:
+
+        st.error(
+            f"Unable to add the work record: {e}"
+        )
 
 
 # =========================================================
@@ -499,7 +563,17 @@ st.divider()
 st.subheader("Work History")
 
 
-records = get_work_history()
+try:
+
+    records = get_work_history()
+
+except Exception:
+
+    st.error(
+        "Unable to load work history from Supabase."
+    )
+
+    records = []
 
 
 if records:
@@ -526,16 +600,20 @@ if records:
                 f"**{work_date_str}**"
             )
 
+
             col2.write(
                 f"{start_time_str} → {end_time_str}"
             )
+
 
             col3.write(
                 f"**{total_hours_value:.2f} h**"
             )
 
 
+            # =================================================
             # Edit
+            # =================================================
 
             if col4.button(
                 "✏️",
@@ -547,7 +625,9 @@ if records:
                 st.rerun()
 
 
+            # =================================================
             # Delete
+            # =================================================
 
             if col5.button(
                 "🗑️",
@@ -648,26 +728,46 @@ if records:
                 save_col, cancel_col = st.columns(2)
 
 
+                # =================================================
+                # Save Changes
+                # =================================================
+
                 if save_col.button(
                     "Save Changes",
                     key=f"save_{record_id}",
                     type="primary"
                 ):
 
-                    update_work_session(
-                        record_id,
-                        edit_date.strftime("%Y-%m-%d"),
-                        edit_start.strftime("%H:%M"),
-                        edit_end.strftime("%H:%M"),
-                        edit_break,
-                        edit_total,
-                        edit_notes
-                    )
+                    try:
 
-                    st.session_state.editing_id = None
+                        update_work_session(
+                            record_id,
+                            edit_date.isoformat(),
+                            edit_start.strftime("%H:%M"),
+                            edit_end.strftime("%H:%M"),
+                            edit_break,
+                            edit_total,
+                            edit_notes
+                        )
 
-                    st.rerun()
+                        st.session_state.editing_id = None
 
+                        st.success(
+                            "Changes saved!"
+                        )
+
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(
+                            f"Unable to save changes: {e}"
+                        )
+
+
+                # =================================================
+                # Cancel Edit
+                # =================================================
 
                 if cancel_col.button(
                     "Cancel",
@@ -695,19 +795,39 @@ if records:
                 delete_col, cancel_col = st.columns(2)
 
 
+                # =================================================
+                # Confirm Delete
+                # =================================================
+
                 if delete_col.button(
                     "Yes, Delete",
                     key=f"confirm_delete_{record_id}"
                 ):
 
-                    delete_work_session(
-                        record_id
-                    )
+                    try:
 
-                    st.session_state.deleting_id = None
+                        delete_work_session(
+                            record_id
+                        )
 
-                    st.rerun()
+                        st.session_state.deleting_id = None
 
+                        st.success(
+                            "Record deleted!"
+                        )
+
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(
+                            f"Unable to delete the record: {e}"
+                        )
+
+
+                # =================================================
+                # Cancel Delete
+                # =================================================
 
                 if cancel_col.button(
                     "Cancel",
