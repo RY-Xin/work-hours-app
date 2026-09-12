@@ -1190,4 +1190,3 @@ else:
     st.caption(
         "No previous records."
     )
-```
