@@ -1,6 +1,6 @@
 import streamlit as st
+import datetime
 from supabase import create_client, Client
-from datetime import datetime, date, time, timedelta
 
 
 # =========================================================
@@ -8,19 +8,11 @@ from datetime import datetime, date, time, timedelta
 # =========================================================
 
 st.set_page_config(
-    page_title="Work Hours Tracker",
+    page_title="Work Hours",
     page_icon="⏱️",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
-
-
-# =========================================================
-# Pay Period Settings
-# =========================================================
-
-PAY_PERIOD_START = date(2026, 8, 24)
-PAY_PERIOD_LENGTH = 14
 
 
 # =========================================================
@@ -31,186 +23,194 @@ st.markdown(
     """
     <style>
 
-    /* =====================================================
-       Global
-       ===================================================== */
+    /* ---------- General ---------- */
 
-    .block-container {
-        max-width: 720px;
-        padding-top: 1.5rem;
-        padding-bottom: 3rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
+    .stApp {
+        background: #f7f8fa;
     }
 
+    .block-container {
+        max-width: 680px;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
 
-    /* =====================================================
-       Main Title
-       ===================================================== */
+    h1, h2, h3 {
+        letter-spacing: -0.3px;
+    }
+
+    /* ---------- Hide Streamlit extras ---------- */
+
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
+    }
+
+    /* ---------- App Header ---------- */
 
     .app-title {
-        font-size: 2rem;
+        font-size: 30px;
         font-weight: 700;
-        margin-bottom: 0.15rem;
+        margin-bottom: 2px;
+        color: #111827;
     }
 
     .app-subtitle {
+        font-size: 14px;
         color: #6b7280;
-        font-size: 0.95rem;
-        margin-bottom: 1.25rem;
+        margin-bottom: 22px;
     }
 
-
-    /* =====================================================
-       Pay Period
-       ===================================================== */
-
-    .period-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background: white;
-    }
+    /* ---------- Pay Period ---------- */
 
     .period-label {
-        text-align: center;
+        font-size: 13px;
         color: #6b7280;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.15rem;
+        margin-bottom: 4px;
+        font-weight: 500;
     }
 
     .period-title {
-        text-align: center;
-        font-size: 1.15rem;
-        font-weight: 650;
+        font-size: 22px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 14px;
     }
 
-
-    /* =====================================================
-       Summary
-       ===================================================== */
+    /* ---------- Summary Card ---------- */
 
     .summary-card {
+        background: white;
         border: 1px solid #e5e7eb;
         border-radius: 18px;
-        padding: 1.15rem;
-        background: white;
-        margin-bottom: 1.5rem;
+        padding: 20px;
+        margin-top: 8px;
+        margin-bottom: 28px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .summary-label {
+        font-size: 13px;
         color: #6b7280;
-        font-size: 0.82rem;
-        margin-bottom: 0.15rem;
+        margin-bottom: 3px;
     }
 
     .summary-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        line-height: 1.15;
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 750;
+        color: #111827;
     }
 
     .summary-secondary {
+        margin-top: 7px;
+        font-size: 14px;
         color: #6b7280;
-        font-size: 0.9rem;
-        margin-top: 0.35rem;
     }
 
-
-    /* =====================================================
-       Section Titles
-       ===================================================== */
+    /* ---------- Section Title ---------- */
 
     .section-title {
-        font-size: 1.15rem;
-        font-weight: 650;
-        margin-top: 1.25rem;
-        margin-bottom: 0.75rem;
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-top: 4px;
+        margin-bottom: 12px;
     }
 
-
-    /* =====================================================
-       Daily Record Card
-       ===================================================== */
+    /* ---------- Record Card ---------- */
 
     .record-card {
+        background: white;
         border: 1px solid #e5e7eb;
         border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        background: white;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.025);
     }
 
     .record-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.45rem;
+        gap: 10px;
     }
 
     .record-date {
-        font-size: 1rem;
+        font-size: 16px;
         font-weight: 650;
+        color: #111827;
     }
 
     .record-hours {
-        font-size: 1rem;
+        font-size: 17px;
         font-weight: 700;
+        color: #111827;
         white-space: nowrap;
     }
 
     .record-time {
-        font-size: 0.95rem;
+        margin-top: 8px;
+        font-size: 15px;
         color: #374151;
     }
 
     .record-detail {
+        margin-top: 5px;
+        font-size: 13px;
         color: #6b7280;
-        font-size: 0.82rem;
-        margin-top: 0.35rem;
     }
 
+    /* ---------- Add Record ---------- */
 
-    /* =====================================================
-       Add Record Area
-       ===================================================== */
-
-    .add-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        padding: 1.1rem;
-        background: white;
-        margin-top: 1rem;
-        margin-bottom: 1.5rem;
+    .add-title {
+        font-size: 19px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
     }
 
-
-    /* =====================================================
-       Mobile
-       ===================================================== */
+    /* ---------- Mobile ---------- */
 
     @media (max-width: 600px) {
 
         .block-container {
-            padding-top: 1rem;
-            padding-left: 0.8rem;
-            padding-right: 0.8rem;
+            padding-left: 14px;
+            padding-right: 14px;
+            padding-top: 1.2rem;
         }
 
         .app-title {
-            font-size: 1.7rem;
+            font-size: 27px;
+        }
+
+        .period-title {
+            font-size: 20px;
+        }
+
+        .summary-card {
+            border-radius: 16px;
+            padding: 18px;
         }
 
         .summary-value {
-            font-size: 1.65rem;
+            font-size: 32px;
         }
 
         .record-card {
-            padding: 0.9rem;
+            padding: 15px 16px;
+            border-radius: 15px;
+        }
+
+        .record-date {
+            font-size: 15px;
+        }
+
+        .record-hours {
+            font-size: 16px;
         }
 
     }
@@ -235,56 +235,128 @@ supabase: Client = create_client(
 
 
 # =========================================================
-# Supabase Helpers
+# Constants
+# =========================================================
+
+PAY_PERIOD_START = datetime.date(2026, 8, 24)
+PAY_PERIOD_LENGTH = 14
+
+
+# =========================================================
+# Helper Functions
 # =========================================================
 
 def normalize_time(value):
-
+    """Convert Supabase time string to HH:MM."""
     if value is None:
-        return ""
+        return None
 
-    return str(value)[:5]
+    value = str(value)
+
+    if len(value) >= 5:
+        return value[:5]
+
+    return value
 
 
-def normalize_record(row):
+def calculate_hours(start_time, end_time, break_minutes):
+    """Calculate total worked hours."""
 
-    return (
-        row["id"],
-        str(row["work_date"]),
-        normalize_time(row["start_time"]),
-        normalize_time(row["end_time"]),
-        row.get("break_minutes") or 0,
-        float(row["total_hours"]),
-        row.get("notes") or "",
+    start = datetime.datetime.combine(
+        datetime.date.today(),
+        start_time
     )
 
+    end = datetime.datetime.combine(
+        datetime.date.today(),
+        end_time
+    )
+
+    if end <= start:
+        end += datetime.timedelta(days=1)
+
+    total_minutes = (end - start).total_seconds() / 60
+    total_minutes -= break_minutes
+
+    return max(total_minutes / 60, 0)
+
+
+def format_date(date_value):
+    """Format date like Mon, Sep 07."""
+
+    if isinstance(date_value, str):
+        date_value = datetime.date.fromisoformat(date_value)
+
+    return date_value.strftime("%a, %b %d")
+
+
+def format_time(time_value):
+    """Format time like 5:20 AM."""
+
+    if isinstance(time_value, str):
+        time_value = datetime.time.fromisoformat(time_value)
+
+    return time_value.strftime("%I:%M %p").lstrip("0")
+
+
+def get_pay_period(offset=0):
+    """
+    Get pay period based on 14-day periods.
+
+    offset = 0  -> current period
+    offset = -1 -> previous period
+    offset = 1  -> next period
+    """
+
+    today = datetime.date.today()
+
+    days_since_start = (today - PAY_PERIOD_START).days
+
+    current_period_index = days_since_start // PAY_PERIOD_LENGTH
+
+    period_index = current_period_index + offset
+
+    start_date = PAY_PERIOD_START + datetime.timedelta(
+        days=period_index * PAY_PERIOD_LENGTH
+    )
+
+    end_date = start_date + datetime.timedelta(
+        days=PAY_PERIOD_LENGTH - 1
+    )
+
+    return start_date, end_date
+
+
+# =========================================================
+# Supabase CRUD
+# =========================================================
 
 def add_work_session(
     work_date,
     start_time,
     end_time,
     break_minutes,
-    total_hours,
     notes
 ):
-
-    return (
-        supabase
-        .table("work_sessions")
-        .insert({
-            "work_date": work_date,
-            "start_time": start_time,
-            "end_time": end_time,
-            "break_minutes": break_minutes,
-            "total_hours": total_hours,
-            "notes": notes or None,
-        })
-        .execute()
+    total_hours = calculate_hours(
+        start_time,
+        end_time,
+        break_minutes
     )
+
+    data = {
+        "work_date": work_date.isoformat(),
+        "start_time": start_time.strftime("%H:%M:%S"),
+        "end_time": end_time.strftime("%H:%M:%S"),
+        "break_minutes": break_minutes,
+        "total_hours": total_hours,
+        "notes": notes.strip() if notes else None,
+    }
+
+    supabase.table("work_sessions").insert(data).execute()
 
 
 def get_work_history():
-
     response = (
         supabase
         .table("work_sessions")
@@ -294,42 +366,22 @@ def get_work_history():
         .execute()
     )
 
-    rows = response.data or []
-
-    return [
-        normalize_record(row)
-        for row in rows
-    ]
+    return response.data or []
 
 
-def get_period_records(
-    period_start,
-    period_end
-):
-
+def get_period_records(start_date, end_date):
     response = (
         supabase
         .table("work_sessions")
         .select("*")
-        .gte(
-            "work_date",
-            period_start.isoformat()
-        )
-        .lte(
-            "work_date",
-            period_end.isoformat()
-        )
-        .order("work_date")
-        .order("start_time")
+        .gte("work_date", start_date.isoformat())
+        .lte("work_date", end_date.isoformat())
+        .order("work_date", desc=False)
+        .order("start_time", desc=False)
         .execute()
     )
 
-    rows = response.data or []
-
-    return [
-        normalize_record(row)
-        for row in rows
-    ]
+    return response.data or []
 
 
 def update_work_session(
@@ -338,29 +390,34 @@ def update_work_session(
     start_time,
     end_time,
     break_minutes,
-    total_hours,
     notes
 ):
+    total_hours = calculate_hours(
+        start_time,
+        end_time,
+        break_minutes
+    )
 
-    return (
+    data = {
+        "work_date": work_date.isoformat(),
+        "start_time": start_time.strftime("%H:%M:%S"),
+        "end_time": end_time.strftime("%H:%M:%S"),
+        "break_minutes": break_minutes,
+        "total_hours": total_hours,
+        "notes": notes.strip() if notes else None,
+    }
+
+    (
         supabase
         .table("work_sessions")
-        .update({
-            "work_date": work_date,
-            "start_time": start_time,
-            "end_time": end_time,
-            "break_minutes": break_minutes,
-            "total_hours": total_hours,
-            "notes": notes or None,
-        })
+        .update(data)
         .eq("id", record_id)
         .execute()
     )
 
 
 def delete_work_session(record_id):
-
-    return (
+    (
         supabase
         .table("work_sessions")
         .delete()
@@ -370,157 +427,15 @@ def delete_work_session(record_id):
 
 
 # =========================================================
-# Calculate Hours
-# =========================================================
-
-def calculate_hours(
-    start_time,
-    end_time,
-    break_minutes
-):
-
-    start_datetime = datetime.combine(
-        date.today(),
-        start_time
-    )
-
-    end_datetime = datetime.combine(
-        date.today(),
-        end_time
-    )
-
-    if end_datetime < start_datetime:
-        end_datetime += timedelta(days=1)
-
-    total_seconds = (
-        end_datetime - start_datetime
-    ).total_seconds()
-
-    total_hours = total_seconds / 3600
-
-    total_hours -= break_minutes / 60
-
-    return max(total_hours, 0)
-
-
-# =========================================================
-# Pay Period
-# =========================================================
-
-def get_pay_period(target_date):
-
-    days_since_start = (
-        target_date - PAY_PERIOD_START
-    ).days
-
-    period_number = (
-        days_since_start // PAY_PERIOD_LENGTH
-    )
-
-    period_start = (
-        PAY_PERIOD_START
-        + timedelta(
-            days=period_number * PAY_PERIOD_LENGTH
-        )
-    )
-
-    period_end = (
-        period_start
-        + timedelta(
-            days=PAY_PERIOD_LENGTH - 1
-        )
-    )
-
-    return period_start, period_end
-
-
-def format_period(
-    period_start,
-    period_end
-):
-
-    return (
-        f"{period_start.strftime('%b %d')} "
-        f"– "
-        f"{period_end.strftime('%b %d, %Y')}"
-    )
-
-
-def format_display_date(date_string):
-
-    value = datetime.strptime(
-        date_string,
-        "%Y-%m-%d"
-    ).date()
-
-    return value.strftime("%a, %b %d")
-
-
-def format_display_time(time_string):
-
-    value = datetime.strptime(
-        time_string,
-        "%H:%M"
-    ).time()
-
-    return value.strftime("%-I:%M %p")
-
-
-# =========================================================
-# Session State
-# =========================================================
-
-if "period_offset" not in st.session_state:
-    st.session_state.period_offset = 0
-
-if "editing_id" not in st.session_state:
-    st.session_state.editing_id = None
-
-if "deleting_id" not in st.session_state:
-    st.session_state.deleting_id = None
-
-if "show_add_form" not in st.session_state:
-    st.session_state.show_add_form = False
-
-
-# =========================================================
-# Current Date / Period
-# =========================================================
-
-today = date.today()
-
-current_start, current_end = get_pay_period(today)
-
-selected_start = (
-    current_start
-    + timedelta(
-        days=(
-            st.session_state.period_offset
-            * PAY_PERIOD_LENGTH
-        )
-    )
-)
-
-selected_end = (
-    selected_start
-    + timedelta(
-        days=PAY_PERIOD_LENGTH - 1
-    )
-)
-
-
-# =========================================================
-# Header
+# App Header
 # =========================================================
 
 st.markdown(
     """
     <div class="app-title">⏱️ Work Hours</div>
-    <div class="app-subtitle">
-        Simple work time tracking
-    </div>
+    <div class="app-subtitle">Simple work time tracking</div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -528,98 +443,87 @@ st.markdown(
 # Pay Period Navigation
 # =========================================================
 
-left_col, center_col, right_col = st.columns(
-    [1, 4, 1]
+if "period_offset" not in st.session_state:
+    st.session_state.period_offset = 0
+
+
+nav_col1, nav_col2, nav_col3 = st.columns(
+    [1, 2, 1],
+    vertical_alignment="center"
 )
 
 
-with left_col:
-
-    if st.button(
-        "‹",
-        key="previous_period",
-        use_container_width=True
-    ):
-
+with nav_col1:
+    if st.button("‹ Previous", use_container_width=True):
         st.session_state.period_offset -= 1
-
         st.rerun()
 
 
-with center_col:
+with nav_col2:
+    start_date, end_date = get_pay_period(
+        st.session_state.period_offset
+    )
 
     st.markdown(
         f"""
-        <div class="period-card">
-            <div class="period-label">
-                Pay Period
-            </div>
-            <div class="period-title">
-                {format_period(
-                    selected_start,
-                    selected_end
-                )}
-            </div>
+        <div style="
+            text-align:center;
+            font-size:13px;
+            color:#6b7280;
+            padding-top:7px;
+        ">
+            Pay Period
+        </div>
+
+        <div style="
+            text-align:center;
+            font-size:17px;
+            font-weight:700;
+            color:#111827;
+            padding-top:2px;
+        ">
+            {start_date.strftime("%b %d")}
+            –
+            {end_date.strftime("%b %d, %Y")}
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
-with right_col:
-
-    if st.button(
-        "›",
-        key="next_period",
-        use_container_width=True
-    ):
-
+with nav_col3:
+    if st.button("Next ›", use_container_width=True):
         st.session_state.period_offset += 1
-
-        st.rerun()
-
-
-if st.session_state.period_offset != 0:
-
-    if st.button(
-        "Current Period",
-        use_container_width=True
-    ):
-
-        st.session_state.period_offset = 0
-
         st.rerun()
 
 
 # =========================================================
-# Load Current Period
+# Current Period Records
 # =========================================================
 
 try:
-
     period_records = get_period_records(
-        selected_start,
-        selected_end
+        start_date,
+        end_date
     )
 
 except Exception as e:
-
-    st.error(
-        "Unable to load work records from Supabase."
-    )
-
-    period_records = []
+    st.error("Unable to load work records from Supabase.")
+    st.caption(str(e))
+    st.stop()
 
 
-# =========================================================
-# Summary
-# =========================================================
-
-total_period_hours = sum(
-    record[5]
+total_hours = sum(
+    float(record.get("total_hours", 0) or 0)
     for record in period_records
 )
 
+days_worked = len(period_records)
+
+
+# =========================================================
+# Summary Card
+# =========================================================
 
 st.markdown(
     f"""
@@ -630,18 +534,16 @@ st.markdown(
         </div>
 
         <div class="summary-value">
-            {total_period_hours:.2f} h
+            {total_hours:.2f} h
         </div>
 
         <div class="summary-secondary">
-            {len(period_records)}
-            {"day" if len(period_records) == 1 else "days"}
-            worked
+            {days_worked} day{"s" if days_worked != 1 else ""} worked
         </div>
 
     </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -651,38 +553,39 @@ st.markdown(
 
 st.markdown(
     '<div class="section-title">Daily Hours</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
-if period_records:
+if not period_records:
+
+    st.info("No work records for this pay period yet.")
+
+else:
 
     for record in period_records:
 
-        record_id = record[0]
-        work_date_str = record[1]
-        start_time_str = record[2]
-        end_time_str = record[3]
-        break_minutes_value = record[4]
-        total_hours_value = record[5]
-        notes_value = record[6]
-
-        display_date = format_display_date(
-            work_date_str
+        work_date = datetime.date.fromisoformat(
+            record["work_date"]
         )
 
-        display_start = format_display_time(
-            start_time_str
+        start_time = datetime.time.fromisoformat(
+            normalize_time(record["start_time"])
         )
 
-        display_end = format_display_time(
-            end_time_str
+        end_time = datetime.time.fromisoformat(
+            normalize_time(record["end_time"])
         )
 
+        hours = float(
+            record.get("total_hours", 0) or 0
+        )
 
-        # =================================================
-        # Record Card
-        # =================================================
+        break_minutes = int(
+            record.get("break_minutes", 0) or 0
+        )
+
+        notes = record.get("notes")
 
         st.markdown(
             f"""
@@ -691,437 +594,421 @@ if period_records:
                 <div class="record-header">
 
                     <div class="record-date">
-                        {display_date}
+                        {format_date(work_date)}
                     </div>
 
                     <div class="record-hours">
-                        {total_hours_value:.2f} h
+                        {hours:.2f} h
                     </div>
 
                 </div>
 
                 <div class="record-time">
-                    {display_start} → {display_end}
+                    {format_time(start_time)}
+                    →
+                    {format_time(end_time)}
                 </div>
 
                 <div class="record-detail">
-                    Break: {break_minutes_value} min
+                    Break: {break_minutes} min
                 </div>
 
                 {
-                    f'<div class="record-detail">Notes: {notes_value}</div>'
-                    if notes_value
-                    else ''
+                    f'<div class="record-detail">Notes: {notes}</div>'
+                    if notes
+                    else ""
                 }
 
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-
-
-        # =================================================
-        # Edit / Delete
-        # =================================================
 
         edit_col, delete_col = st.columns(2)
 
+        with edit_col:
 
-        if edit_col.button(
-            "✏️ Edit",
-            key=f"period_edit_{record_id}",
-            use_container_width=True
+            edit_key = f"edit_{record['id']}"
+
+            if st.button(
+                "✏️ Edit",
+                key=edit_key,
+                use_container_width=True
+            ):
+                st.session_state.editing_id = record["id"]
+                st.rerun()
+
+        with delete_col:
+
+            delete_key = f"delete_{record['id']}"
+
+            if st.button(
+                "🗑️ Delete",
+                key=delete_key,
+                use_container_width=True
+            ):
+                st.session_state.deleting_id = record["id"]
+                st.rerun()
+
+
+# =========================================================
+# Edit Record
+# =========================================================
+
+if "editing_id" in st.session_state:
+
+    editing_id = st.session_state.editing_id
+
+    editing_record = next(
+        (
+            record
+            for record in period_records
+            if record["id"] == editing_id
+        ),
+        None
+    )
+
+    if editing_record:
+
+        st.divider()
+
+        st.markdown(
+            '<div class="section-title">Edit Work Record</div>',
+            unsafe_allow_html=True,
+        )
+
+        edit_date = datetime.date.fromisoformat(
+            editing_record["work_date"]
+        )
+
+        edit_start = datetime.time.fromisoformat(
+            normalize_time(
+                editing_record["start_time"]
+            )
+        )
+
+        edit_end = datetime.time.fromisoformat(
+            normalize_time(
+                editing_record["end_time"]
+            )
+        )
+
+        edit_break = int(
+            editing_record.get("break_minutes", 0) or 0
+        )
+
+        edit_notes = (
+            editing_record.get("notes")
+            or ""
+        )
+
+        with st.form(
+            f"edit_form_{editing_id}"
         ):
 
-            st.session_state.editing_id = record_id
-            st.session_state.deleting_id = None
-
-            st.rerun()
-
-
-        if delete_col.button(
-            "🗑️ Delete",
-            key=f"period_delete_{record_id}",
-            use_container_width=True
-        ):
-
-            st.session_state.deleting_id = record_id
-            st.session_state.editing_id = None
-
-            st.rerun()
-
-
-        # =================================================
-        # Edit Form
-        # =================================================
-
-        if st.session_state.editing_id == record_id:
-
-            st.markdown("#### Edit Record")
-
-
-            edit_date = st.date_input(
+            new_date = st.date_input(
                 "Date",
-                value=datetime.strptime(
-                    work_date_str,
-                    "%Y-%m-%d"
-                ).date(),
-                key=f"edit_date_{record_id}"
+                value=edit_date
             )
 
-
-            edit_start = st.time_input(
+            new_start = st.time_input(
                 "Start Time",
-                value=datetime.strptime(
-                    start_time_str,
-                    "%H:%M"
-                ).time(),
-                key=f"edit_start_{record_id}"
+                value=edit_start
             )
 
-
-            edit_end = st.time_input(
+            new_end = st.time_input(
                 "End Time",
-                value=datetime.strptime(
-                    end_time_str,
-                    "%H:%M"
-                ).time(),
-                key=f"edit_end_{record_id}"
+                value=edit_end
             )
 
-
-            edit_break = st.number_input(
+            new_break = st.number_input(
                 "Break (minutes)",
                 min_value=0,
-                value=break_minutes_value,
-                step=15,
-                key=f"edit_break_{record_id}"
+                max_value=300,
+                value=edit_break,
+                step=5
             )
 
-
-            edit_notes = st.text_input(
+            new_notes = st.text_input(
                 "Notes",
-                value=notes_value or "",
-                key=f"edit_notes_{record_id}"
+                value=edit_notes
             )
-
-
-            edit_total = calculate_hours(
-                edit_start,
-                edit_end,
-                edit_break
-            )
-
-
-            st.metric(
-                "Total Hours",
-                f"{edit_total:.2f} h"
-            )
-
 
             save_col, cancel_col = st.columns(2)
 
+            with save_col:
 
-            if save_col.button(
-                "Save Changes",
-                key=f"save_{record_id}",
-                type="primary",
-                use_container_width=True
-            ):
+                save_edit = st.form_submit_button(
+                    "Save Changes",
+                    use_container_width=True
+                )
+
+            with cancel_col:
+
+                cancel_edit = st.form_submit_button(
+                    "Cancel",
+                    use_container_width=True
+                )
+
+            if save_edit:
 
                 try:
 
                     update_work_session(
-                        record_id,
-                        edit_date.isoformat(),
-                        edit_start.strftime("%H:%M"),
-                        edit_end.strftime("%H:%M"),
-                        edit_break,
-                        edit_total,
-                        edit_notes
+                        editing_id,
+                        new_date,
+                        new_start,
+                        new_end,
+                        new_break,
+                        new_notes
                     )
 
-                    st.session_state.editing_id = None
+                    del st.session_state.editing_id
+
+                    st.success(
+                        "Work record updated."
+                    )
 
                     st.rerun()
 
                 except Exception as e:
 
                     st.error(
-                        f"Unable to save changes: {e}"
+                        "Unable to update the record."
                     )
 
+                    st.caption(str(e))
 
-            if cancel_col.button(
-                "Cancel",
-                key=f"cancel_{record_id}",
-                use_container_width=True
-            ):
+            if cancel_edit:
 
-                st.session_state.editing_id = None
-
+                del st.session_state.editing_id
                 st.rerun()
 
 
-        # =================================================
-        # Delete Confirmation
-        # =================================================
+# =========================================================
+# Delete Confirmation
+# =========================================================
 
-        if st.session_state.deleting_id == record_id:
+if "deleting_id" in st.session_state:
 
-            st.warning(
-                "Delete this work record?"
-            )
+    deleting_id = st.session_state.deleting_id
 
+    deleting_record = next(
+        (
+            record
+            for record in period_records
+            if record["id"] == deleting_id
+        ),
+        None
+    )
 
-            delete_col, cancel_col = st.columns(2)
+    if deleting_record:
 
+        st.divider()
 
-            if delete_col.button(
+        st.warning(
+            "Are you sure you want to delete this work record?"
+        )
+
+        confirm_col, cancel_col = st.columns(2)
+
+        with confirm_col:
+
+            if st.button(
                 "Yes, Delete",
-                key=f"confirm_delete_{record_id}",
-                type="primary",
+                key=f"confirm_delete_{deleting_id}",
                 use_container_width=True
             ):
 
                 try:
 
                     delete_work_session(
-                        record_id
+                        deleting_id
                     )
 
-                    st.session_state.deleting_id = None
+                    del st.session_state.deleting_id
+
+                    st.success(
+                        "Work record deleted."
+                    )
 
                     st.rerun()
 
                 except Exception as e:
 
                     st.error(
-                        f"Unable to delete the record: {e}"
+                        "Unable to delete the record."
                     )
 
+                    st.caption(str(e))
 
-            if cancel_col.button(
+        with cancel_col:
+
+            if st.button(
                 "Cancel",
-                key=f"cancel_delete_{record_id}",
+                key=f"cancel_delete_{deleting_id}",
                 use_container_width=True
             ):
 
-                st.session_state.deleting_id = None
-
+                del st.session_state.deleting_id
                 st.rerun()
-
-
-else:
-
-    st.info(
-        "No work records in this pay period."
-    )
 
 
 # =========================================================
 # Add Work Record
 # =========================================================
 
-st.markdown(
-    '<div class="section-title">Add Work Record</div>',
-    unsafe_allow_html=True
-)
+st.divider()
 
+with st.expander(
+    "＋ Add Work Record",
+    expanded=False
+):
 
-if not st.session_state.show_add_form:
+    st.markdown(
+        '<div class="add-title">New Work Record</div>',
+        unsafe_allow_html=True,
+    )
 
-    if st.button(
-        "＋ Add Work Record",
-        type="primary",
-        use_container_width=True
-    ):
-
-        st.session_state.show_add_form = True
-
-        st.rerun()
-
-
-else:
-
-    with st.container(border=True):
-
-        st.markdown("### New Work Record")
-
+    with st.form("add_work_form"):
 
         add_date = st.date_input(
             "Date",
-            value=today,
-            key="add_date"
+            value=datetime.date.today()
         )
 
+        add_start = st.time_input(
+            "Start Time",
+            value=datetime.time(5, 0)
+        )
 
-        time_col1, time_col2 = st.columns(2)
-
-
-        with time_col1:
-
-            add_start = st.time_input(
-                "Start Time",
-                value=time(5, 30),
-                key="add_start"
-            )
-
-
-        with time_col2:
-
-            add_end = st.time_input(
-                "End Time",
-                value=time(14, 0),
-                key="add_end"
-            )
-
+        add_end = st.time_input(
+            "End Time",
+            value=datetime.time(14, 0)
+        )
 
         add_break = st.number_input(
             "Break (minutes)",
             min_value=0,
-            value=0,
-            step=15,
-            key="add_break"
+            max_value=300,
+            value=30,
+            step=5
         )
-
 
         add_notes = st.text_input(
             "Notes",
-            placeholder="Optional",
-            key="add_notes"
+            placeholder="Optional"
         )
 
-
-        add_total = calculate_hours(
-            add_start,
-            add_end,
-            add_break
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="summary-card">
-                <div class="summary-label">
-                    Total Hours
-                </div>
-                <div class="summary-value">
-                    {add_total:.2f} h
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        save_col, cancel_col = st.columns(2)
-
-
-        if save_col.button(
+        add_submit = st.form_submit_button(
             "Add Record",
-            type="primary",
-            use_container_width=True,
-            key="add_record"
-        ):
+            use_container_width=True
+        )
+
+        if add_submit:
 
             try:
 
-                add_work_session(
-                    add_date.isoformat(),
-                    add_start.strftime("%H:%M"),
-                    add_end.strftime("%H:%M"),
-                    add_break,
-                    add_total,
-                    add_notes
-                )
+                if add_end == add_start:
 
-                st.session_state.show_add_form = False
+                    st.error(
+                        "Start time and end time cannot be the same."
+                    )
 
-                st.success(
-                    "Work record added!"
-                )
+                else:
 
-                st.rerun()
+                    add_work_session(
+                        add_date,
+                        add_start,
+                        add_end,
+                        add_break,
+                        add_notes
+                    )
+
+                    st.success(
+                        "Work record added."
+                    )
+
+                    st.rerun()
 
             except Exception as e:
 
                 st.error(
-                    f"Unable to add the work record: {e}"
+                    "Unable to add the work record."
                 )
 
-
-        if cancel_col.button(
-            "Cancel",
-            use_container_width=True,
-            key="cancel_add"
-        ):
-
-            st.session_state.show_add_form = False
-
-            st.rerun()
+                st.caption(str(e))
 
 
 # =========================================================
-# Work History
+# Previous Work History
 # =========================================================
-
-st.markdown(
-    '<div class="section-title">Work History</div>',
-    unsafe_allow_html=True
-)
-
 
 try:
 
-    records = get_work_history()
+    all_records = get_work_history()
 
-except Exception:
+except Exception as e:
 
-    records = []
-
-
-# Show history outside selected pay period
-history_records = [
-    record
-    for record in records
-    if not (
-        selected_start.isoformat()
-        <= record[1]
-        <= selected_end.isoformat()
+    all_records = []
+    st.error(
+        "Unable to load work history from Supabase."
     )
-]
+    st.caption(str(e))
 
 
-if history_records:
+previous_records = []
 
-    with st.expander(
-        f"View Previous Records ({len(history_records)})"
+for record in all_records:
+
+    record_date = datetime.date.fromisoformat(
+        record["work_date"]
+    )
+
+    if not (
+        start_date <= record_date <= end_date
     ):
-
-        for record in history_records:
-
-            record_id = record[0]
-            work_date_str = record[1]
-            start_time_str = record[2]
-            end_time_str = record[3]
-            break_minutes_value = record[4]
-            total_hours_value = record[5]
-            notes_value = record[6]
+        previous_records.append(record)
 
 
-            display_date = format_display_date(
-                work_date_str
+st.divider()
+
+with st.expander(
+    f"📚 Work History ({len(previous_records)})",
+    expanded=False
+):
+
+    if not previous_records:
+
+        st.caption(
+            "No previous records."
+        )
+
+    else:
+
+        for record in previous_records:
+
+            work_date = datetime.date.fromisoformat(
+                record["work_date"]
             )
 
-            display_start = format_display_time(
-                start_time_str
+            start_time = datetime.time.fromisoformat(
+                normalize_time(record["start_time"])
             )
 
-            display_end = format_display_time(
-                end_time_str
+            end_time = datetime.time.fromisoformat(
+                normalize_time(record["end_time"])
             )
 
+            hours = float(
+                record.get("total_hours", 0) or 0
+            )
+
+            break_minutes = int(
+                record.get("break_minutes", 0) or 0
+            )
+
+            notes = record.get("notes")
 
             st.markdown(
                 f"""
@@ -1130,63 +1017,32 @@ if history_records:
                     <div class="record-header">
 
                         <div class="record-date">
-                            {display_date}
+                            {format_date(work_date)}
                         </div>
 
                         <div class="record-hours">
-                            {total_hours_value:.2f} h
+                            {hours:.2f} h
                         </div>
 
                     </div>
 
                     <div class="record-time">
-                        {display_start} → {display_end}
+                        {format_time(start_time)}
+                        →
+                        {format_time(end_time)}
                     </div>
 
                     <div class="record-detail">
-                        Break: {break_minutes_value} min
+                        Break: {break_minutes} min
                     </div>
 
                     {
-                        f'<div class="record-detail">Notes: {notes_value}</div>'
-                        if notes_value
-                        else ''
+                        f'<div class="record-detail">Notes: {notes}</div>'
+                        if notes
+                        else ""
                     }
 
                 </div>
                 """,
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
-
-            edit_col, delete_col = st.columns(2)
-
-
-            if edit_col.button(
-                "✏️ Edit",
-                key=f"history_edit_{record_id}",
-                use_container_width=True
-            ):
-
-                st.session_state.editing_id = record_id
-                st.session_state.deleting_id = None
-
-                st.rerun()
-
-
-            if delete_col.button(
-                "🗑️ Delete",
-                key=f"history_delete_{record_id}",
-                use_container_width=True
-            ):
-
-                st.session_state.deleting_id = record_id
-                st.session_state.editing_id = None
-
-                st.rerun()
-
-
-else:
-
-    st.caption(
-        "No previous records."
-    )
