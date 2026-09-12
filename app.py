@@ -17,22 +17,52 @@ st.set_page_config(
 
 
 # =========================================================
-# CSS
+# Custom CSS
 # =========================================================
 
 st.markdown(
     """
 <style>
 
+:root {
+    --bg: #faf8f5;
+    --card: #fffdfb;
+    --text: #514a46;
+    --text-light: #8a817b;
+    --border: #eee7e1;
+
+    --yellow: #f6edc9;
+    --yellow-dark: #eadc9d;
+
+    --pink: #f6dfe1;
+    --pink-dark: #eac5c9;
+
+    --peach: #f7dfcf;
+    --peach-dark: #edc8ad;
+
+    --danger: #f3d7d7;
+    --danger-text: #9a6868;
+}
+
+
+/* =========================================================
+   Page
+   ========================================================= */
+
 .stApp {
-    background: #f7f8fa;
+    background: var(--bg);
 }
 
 .block-container {
     max-width: 680px;
-    padding-top: 1.5rem;
+    padding-top: 1.4rem;
     padding-bottom: 3rem;
+    padding-left: 16px;
+    padding-right: 16px;
 }
+
+
+/* Hide Streamlit menu/footer */
 
 #MainMenu {
     visibility: hidden;
@@ -42,134 +72,324 @@ footer {
     visibility: hidden;
 }
 
-/* App header */
+
+/* =========================================================
+   Header
+   ========================================================= */
 
 .app-title {
+    color: var(--text);
     font-size: 30px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 2px;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+    margin-bottom: 1px;
 }
 
 .app-subtitle {
+    color: var(--text-light);
     font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
-/* Period */
+
+/* =========================================================
+   Pay Period
+   ========================================================= */
 
 .period-label {
-    font-size: 13px;
-    color: #6b7280;
     text-align: center;
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
 }
 
 .period-title {
+    text-align: center;
+    color: var(--text);
     font-size: 17px;
     font-weight: 700;
-    color: #111827;
-    text-align: center;
+    margin-top: 2px;
 }
 
-/* Summary */
+
+/* Navigation buttons */
+
+.stButton > button {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fffdfb;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 550;
+    min-height: 38px;
+    transition: 0.15s ease;
+}
+
+.stButton > button:hover {
+    border-color: var(--yellow-dark);
+    color: var(--text);
+    background: #fffaf0;
+}
+
+
+/* =========================================================
+   Summary Card
+   ========================================================= */
 
 .summary-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 20px;
+    background: var(--yellow);
+    border: 1px solid #eee3bd;
+    border-radius: 20px;
+    padding: 21px 22px;
     margin-top: 18px;
-    margin-bottom: 28px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    margin-bottom: 16px;
 }
 
 .summary-label {
+    color: #81785d;
     font-size: 13px;
-    color: #6b7280;
+    font-weight: 550;
 }
 
 .summary-value {
-    font-size: 34px;
+    color: var(--text);
+    font-size: 36px;
+    line-height: 1.1;
     font-weight: 750;
-    line-height: 1.15;
-    color: #111827;
+    letter-spacing: -0.5px;
     margin-top: 2px;
 }
 
 .summary-secondary {
+    color: #81785d;
     font-size: 14px;
-    color: #6b7280;
     margin-top: 6px;
 }
 
-/* Section */
 
-.section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 12px;
+/* =========================================================
+   Add Work Record
+   ========================================================= */
+
+.add-section {
+    background: var(--pink);
+    border: 1px solid #ecd0d3;
+    border-radius: 17px;
+    padding: 2px 14px;
+    margin-bottom: 16px;
 }
 
-/* Record */
+
+/* Expander */
+
+[data-testid="stExpander"] {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--card);
+    overflow: hidden;
+}
+
+[data-testid="stExpander"] details summary {
+    color: var(--text);
+    font-weight: 650;
+}
+
+
+/* Add form button */
+
+.add-form-button button {
+    background: var(--peach) !important;
+    border: 1px solid var(--peach-dark) !important;
+    color: var(--text) !important;
+    font-weight: 700 !important;
+}
+
+.add-form-button button:hover {
+    background: #f4d5bf !important;
+}
+
+
+/* =========================================================
+   Section Titles
+   ========================================================= */
+
+.section-title {
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 700;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+/* =========================================================
+   Daily Hours Expander
+   ========================================================= */
+
+.daily-expander {
+    margin-top: 4px;
+}
+
+
+/* =========================================================
+   Record Card
+   ========================================================= */
 
 .record-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 16px 18px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.025);
+    padding: 15px 16px;
+    margin-bottom: 6px;
+    box-shadow: 0 1px 5px rgba(90, 75, 65, 0.035);
 }
 
 .record-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .record-date {
-    font-size: 16px;
-    font-weight: 650;
-    color: #111827;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 680;
 }
 
 .record-hours {
-    font-size: 17px;
-    font-weight: 700;
-    color: #111827;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 720;
+    white-space: nowrap;
 }
 
 .record-time {
-    font-size: 15px;
-    color: #374151;
-    margin-top: 8px;
+    color: #625a55;
+    font-size: 14px;
+    margin-top: 7px;
 }
 
 .record-detail {
-    font-size: 13px;
-    color: #6b7280;
-    margin-top: 5px;
+    color: var(--text-light);
+    font-size: 12px;
+    margin-top: 4px;
 }
 
-/* Mobile */
+
+/* =========================================================
+   Edit / Delete Buttons
+   ========================================================= */
+
+.edit-delete-row .stButton > button {
+    min-height: 30px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 9px;
+    box-shadow: none;
+}
+
+.edit-button .stButton > button {
+    background: #faf0d2 !important;
+    border: 1px solid #eee0b8 !important;
+    color: #766a4c !important;
+}
+
+.edit-button .stButton > button:hover {
+    background: #f5e8c0 !important;
+}
+
+.delete-button .stButton > button {
+    background: var(--danger) !important;
+    border: 1px solid #eac7c7 !important;
+    color: var(--danger-text) !important;
+}
+
+.delete-button .stButton > button:hover {
+    background: #efcece !important;
+}
+
+
+/* =========================================================
+   Forms
+   ========================================================= */
+
+div[data-testid="stForm"] {
+    border: none;
+    padding: 0;
+}
+
+label {
+    color: var(--text) !important;
+}
+
+input,
+textarea {
+    border-radius: 10px !important;
+}
+
+
+/* Primary form button */
+
+div[data-testid="stFormSubmitButton"] button {
+    background: var(--peach) !important;
+    border: 1px solid var(--peach-dark) !important;
+    color: var(--text) !important;
+    font-weight: 700 !important;
+    border-radius: 11px !important;
+}
+
+div[data-testid="stFormSubmitButton"] button:hover {
+    background: #f3d3bc !important;
+}
+
+
+/* =========================================================
+   Empty State
+   ========================================================= */
+
+.empty-message {
+    color: var(--text-light);
+    background: #fffdfb;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    padding: 15px;
+    text-align: center;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   Mobile
+   ========================================================= */
 
 @media (max-width: 600px) {
 
     .block-container {
-        padding-left: 14px;
-        padding-right: 14px;
-        padding-top: 1rem;
+        padding-top: 0.9rem;
+        padding-left: 13px;
+        padding-right: 13px;
     }
 
     .app-title {
         font-size: 27px;
     }
 
+    .app-subtitle {
+        font-size: 13px;
+        margin-bottom: 17px;
+    }
+
+    .period-title {
+        font-size: 16px;
+    }
+
     .summary-card {
-        padding: 18px;
-        border-radius: 16px;
+        padding: 18px 19px;
+        border-radius: 18px;
+        margin-top: 15px;
     }
 
     .summary-value {
@@ -177,10 +397,39 @@ footer {
     }
 
     .record-card {
-        padding: 15px 16px;
-        border-radius: 15px;
+        padding: 14px 15px;
     }
 
+    .record-date {
+        font-size: 14px;
+    }
+
+    .record-hours {
+        font-size: 15px;
+    }
+
+    .record-time {
+        font-size: 13px;
+    }
+
+    .record-detail {
+        font-size: 12px;
+    }
+
+    .stButton > button {
+        min-height: 36px;
+        font-size: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   Remove unnecessary vertical gaps
+   ========================================================= */
+
+div[data-testid="stVerticalBlock"] > div {
+    gap: 0.35rem;
 }
 
 </style>
@@ -190,7 +439,7 @@ footer {
 
 
 # =========================================================
-# Supabase
+# Supabase Connection
 # =========================================================
 
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -218,9 +467,7 @@ def normalize_time(value):
     if value is None:
         return None
 
-    value = str(value)
-
-    return value[:5]
+    return str(value)[:5]
 
 
 def calculate_hours(start_time, end_time, break_minutes):
@@ -238,11 +485,13 @@ def calculate_hours(start_time, end_time, break_minutes):
     if end <= start:
         end += datetime.timedelta(days=1)
 
-    minutes = (end - start).total_seconds() / 60
+    total_minutes = (
+        end - start
+    ).total_seconds() / 60
 
-    minutes -= break_minutes
+    total_minutes -= break_minutes
 
-    return max(minutes / 60, 0)
+    return max(total_minutes / 60, 0)
 
 
 def format_date(value):
@@ -269,11 +518,13 @@ def get_pay_period(offset=0):
         today - PAY_PERIOD_START
     ).days
 
-    current_index = (
+    current_period_index = (
         days_since_start // PAY_PERIOD_LENGTH
     )
 
-    period_index = current_index + offset
+    period_index = (
+        current_period_index + offset
+    )
 
     start_date = (
         PAY_PERIOD_START
@@ -355,26 +606,6 @@ def get_period_records(
     return response.data or []
 
 
-def get_work_history():
-
-    response = (
-        supabase
-        .table("work_sessions")
-        .select("*")
-        .order(
-            "work_date",
-            desc=True
-        )
-        .order(
-            "start_time",
-            desc=True
-        )
-        .execute()
-    )
-
-    return response.data or []
-
-
 def update_work_session(
     record_id,
     work_date,
@@ -420,13 +651,15 @@ def delete_work_session(record_id):
 
 
 # =========================================================
-# Header
+# App Header
 # =========================================================
 
 st.html(
     """
 <div class="app-title">⏱️ Work Hours</div>
-<div class="app-subtitle">Simple work time tracking</div>
+<div class="app-subtitle">
+    Simple work time tracking
+</div>
 """
 )
 
@@ -439,22 +672,23 @@ if "period_offset" not in st.session_state:
     st.session_state.period_offset = 0
 
 
-col1, col2, col3 = st.columns(
+nav_left, nav_center, nav_right = st.columns(
     [1, 2, 1]
 )
 
 
-with col1:
+with nav_left:
 
     if st.button(
         "‹ Previous",
         use_container_width=True
     ):
+
         st.session_state.period_offset -= 1
         st.rerun()
 
 
-with col2:
+with nav_center:
 
     start_date, end_date = get_pay_period(
         st.session_state.period_offset
@@ -462,7 +696,10 @@ with col2:
 
     st.html(
         f"""
-<div class="period-label">Pay Period</div>
+<div class="period-label">
+Pay Period
+</div>
+
 <div class="period-title">
 {start_date.strftime("%b %d")}
 –
@@ -472,12 +709,13 @@ with col2:
     )
 
 
-with col3:
+with nav_right:
 
     if st.button(
         "Next ›",
         use_container_width=True
     ):
+
         st.session_state.period_offset += 1
         st.rerun()
 
@@ -504,6 +742,10 @@ except Exception as e:
     st.stop()
 
 
+# =========================================================
+# Calculate Summary
+# =========================================================
+
 total_hours = sum(
     float(
         record.get(
@@ -518,7 +760,7 @@ days_worked = len(period_records)
 
 
 # =========================================================
-# Summary
+# Total Hours
 # =========================================================
 
 st.html(
@@ -544,72 +786,171 @@ Total Hours
 
 
 # =========================================================
+# Add Work Record
+# =========================================================
+
+with st.expander(
+    "＋  Add Work Record",
+    expanded=False
+):
+
+    st.html(
+        """
+<div class="section-title">
+New Work Record
+</div>
+"""
+    )
+
+    with st.form("add_work_form"):
+
+        add_date = st.date_input(
+            "Date",
+            value=datetime.date.today()
+        )
+
+        # Start / End on the same row
+
+        time_col1, time_col2 = st.columns(2)
+
+        with time_col1:
+
+            add_start = st.time_input(
+                "Start Time",
+                value=datetime.time(5, 0)
+            )
+
+        with time_col2:
+
+            add_end = st.time_input(
+                "End Time",
+                value=datetime.time(14, 0)
+            )
+
+        add_break = st.number_input(
+            "Break (minutes)",
+            min_value=0,
+            max_value=300,
+            value=30,
+            step=5
+        )
+
+        add_notes = st.text_input(
+            "Notes",
+            placeholder="Optional"
+        )
+
+        add_submit = st.form_submit_button(
+            "Add Record",
+            use_container_width=True
+        )
+
+        if add_submit:
+
+            if add_end == add_start:
+
+                st.error(
+                    "Start time and end time cannot be the same."
+                )
+
+            else:
+
+                try:
+
+                    add_work_session(
+                        add_date,
+                        add_start,
+                        add_end,
+                        add_break,
+                        add_notes
+                    )
+
+                    st.success(
+                        "Work record added."
+                    )
+
+                    st.rerun()
+
+                except Exception as e:
+
+                    st.error(
+                        "Unable to add the work record."
+                    )
+
+                    st.caption(str(e))
+
+
+# =========================================================
 # Daily Hours
 # =========================================================
 
-st.html(
-    '<div class="section-title">Daily Hours</div>'
-)
+with st.expander(
+    f"🕐  Daily Hours  ·  {days_worked} days",
+    expanded=False
+):
 
-
-if not period_records:
-
-    st.info(
-        "No work records for this pay period yet."
-    )
-
-else:
-
-    for record in period_records:
-
-        work_date = datetime.date.fromisoformat(
-            record["work_date"]
-        )
-
-        start_time = datetime.time.fromisoformat(
-            normalize_time(
-                record["start_time"]
-            )
-        )
-
-        end_time = datetime.time.fromisoformat(
-            normalize_time(
-                record["end_time"]
-            )
-        )
-
-        hours = float(
-            record.get(
-                "total_hours",
-                0
-            ) or 0
-        )
-
-        break_minutes = int(
-            record.get(
-                "break_minutes",
-                0
-            ) or 0
-        )
-
-        notes = record.get("notes")
-
-        notes_html = ""
-
-        if notes:
-
-            safe_notes = html.escape(
-                str(notes)
-            )
-
-            notes_html = (
-                f'<div class="record-detail">'
-                f'Notes: {safe_notes}'
-                f'</div>'
-            )
+    if not period_records:
 
         st.html(
-            f"""
+            """
+<div class="empty-message">
+No work records for this pay period yet.
+</div>
+"""
+        )
+
+    else:
+
+        for record in period_records:
+
+            work_date = datetime.date.fromisoformat(
+                record["work_date"]
+            )
+
+            start_time = datetime.time.fromisoformat(
+                normalize_time(
+                    record["start_time"]
+                )
+            )
+
+            end_time = datetime.time.fromisoformat(
+                normalize_time(
+                    record["end_time"]
+                )
+            )
+
+            hours = float(
+                record.get(
+                    "total_hours",
+                    0
+                ) or 0
+            )
+
+            break_minutes = int(
+                record.get(
+                    "break_minutes",
+                    0
+                ) or 0
+            )
+
+            notes = record.get("notes")
+
+            notes_html = ""
+
+            if notes:
+
+                safe_notes = html.escape(
+                    str(notes)
+                )
+
+                notes_html = (
+                    f'<div class="record-detail">'
+                    f'Notes: {safe_notes}'
+                    f'</div>'
+                )
+
+            st.html(
+                f"""
 <div class="record-card">
 
 <div class="record-header">
@@ -626,53 +967,77 @@ else:
 
 <div class="record-time">
 {format_time(start_time)}
-→
+&nbsp;→&nbsp;
 {format_time(end_time)}
 </div>
 
 <div class="record-detail">
-Break: {break_minutes} min
+Break {break_minutes} min
 </div>
 
 {notes_html}
 
 </div>
 """
-        )
+            )
 
-        edit_col, delete_col = st.columns(2)
+            # Small Edit / Delete buttons
 
-        with edit_col:
+            edit_col, delete_col, spacer = st.columns(
+                [0.8, 0.8, 3.4]
+            )
 
-            if st.button(
-                "✏️ Edit",
-                key=f"edit_{record['id']}",
-                use_container_width=True
-            ):
+            with edit_col:
 
-                st.session_state.editing_id = (
-                    record["id"]
+                st.markdown(
+                    '<div class="edit-button">',
+                    unsafe_allow_html=True
                 )
 
-                st.rerun()
+                if st.button(
+                    "✏ Edit",
+                    key=f"edit_{record['id']}",
+                    use_container_width=True
+                ):
 
-        with delete_col:
+                    st.session_state.editing_id = (
+                        record["id"]
+                    )
 
-            if st.button(
-                "🗑️ Delete",
-                key=f"delete_{record['id']}",
-                use_container_width=True
-            ):
+                    st.rerun()
 
-                st.session_state.deleting_id = (
-                    record["id"]
+                st.markdown(
+                    "</div>",
+                    unsafe_allow_html=True
                 )
 
-                st.rerun()
+            with delete_col:
+
+                st.markdown(
+                    '<div class="delete-button">',
+                    unsafe_allow_html=True
+                )
+
+                if st.button(
+                    "Delete",
+                    key=f"delete_{record['id']}",
+                    use_container_width=True
+                ):
+
+                    st.session_state.deleting_id = (
+                        record["id"]
+                    )
+
+                    st.rerun()
+
+                st.markdown(
+                    "</div>",
+                    unsafe_allow_html=True
+                )
 
 
 # =========================================================
-# Edit
+# Edit Work Record
 # =========================================================
 
 if "editing_id" in st.session_state:
@@ -681,9 +1046,9 @@ if "editing_id" in st.session_state:
 
     editing_record = next(
         (
-            r
-            for r in period_records
-            if r["id"] == editing_id
+            record
+            for record in period_records
+            if record["id"] == editing_id
         ),
         None
     )
@@ -693,9 +1058,11 @@ if "editing_id" in st.session_state:
         st.divider()
 
         st.html(
-            '<div class="section-title">'
-            'Edit Work Record'
-            '</div>'
+            """
+<div class="section-title">
+Edit Work Record
+</div>
+"""
         )
 
         edit_date = datetime.date.fromisoformat(
@@ -735,15 +1102,21 @@ if "editing_id" in st.session_state:
                 value=edit_date
             )
 
-            new_start = st.time_input(
-                "Start Time",
-                value=edit_start
-            )
+            edit_time_col1, edit_time_col2 = st.columns(2)
 
-            new_end = st.time_input(
-                "End Time",
-                value=edit_end
-            )
+            with edit_time_col1:
+
+                new_start = st.time_input(
+                    "Start Time",
+                    value=edit_start
+                )
+
+            with edit_time_col2:
+
+                new_end = st.time_input(
+                    "End Time",
+                    value=edit_end
+                )
 
             new_break = st.number_input(
                 "Break (minutes)",
@@ -818,9 +1191,9 @@ if "deleting_id" in st.session_state:
 
     deleting_record = next(
         (
-            r
-            for r in period_records
-            if r["id"] == deleting_id
+            record
+            for record in period_records
+            if record["id"] == deleting_id
         ),
         None
     )
@@ -830,7 +1203,7 @@ if "deleting_id" in st.session_state:
         st.divider()
 
         st.warning(
-            "Are you sure you want to delete this work record?"
+            "Delete this work record?"
         )
 
         confirm_col, cancel_col = st.columns(2)
@@ -839,7 +1212,7 @@ if "deleting_id" in st.session_state:
 
             if st.button(
                 "Yes, Delete",
-                key=f"confirm_{deleting_id}",
+                key=f"confirm_delete_{deleting_id}",
                 use_container_width=True
             ):
 
@@ -865,229 +1238,10 @@ if "deleting_id" in st.session_state:
 
             if st.button(
                 "Cancel",
-                key=f"cancel_{deleting_id}",
+                key=f"cancel_delete_{deleting_id}",
                 use_container_width=True
             ):
 
                 del st.session_state.deleting_id
 
                 st.rerun()
-
-
-# =========================================================
-# Add Work Record
-# =========================================================
-
-st.divider()
-
-with st.expander(
-    "＋ Add Work Record",
-    expanded=False
-):
-
-    st.html(
-        '<div class="section-title">'
-        'New Work Record'
-        '</div>'
-    )
-
-    with st.form("add_work_form"):
-
-        add_date = st.date_input(
-            "Date",
-            value=datetime.date.today()
-        )
-
-        add_start = st.time_input(
-            "Start Time",
-            value=datetime.time(5, 0)
-        )
-
-        add_end = st.time_input(
-            "End Time",
-            value=datetime.time(14, 0)
-        )
-
-        add_break = st.number_input(
-            "Break (minutes)",
-            min_value=0,
-            max_value=300,
-            value=30,
-            step=5
-        )
-
-        add_notes = st.text_input(
-            "Notes",
-            placeholder="Optional"
-        )
-
-        add_submit = st.form_submit_button(
-            "Add Record",
-            use_container_width=True
-        )
-
-        if add_submit:
-
-            if add_end == add_start:
-
-                st.error(
-                    "Start time and end time cannot be the same."
-                )
-
-            else:
-
-                try:
-
-                    add_work_session(
-                        add_date,
-                        add_start,
-                        add_end,
-                        add_break,
-                        add_notes
-                    )
-
-                    st.success(
-                        "Work record added."
-                    )
-
-                    st.rerun()
-
-                except Exception as e:
-
-                    st.error(
-                        "Unable to add the work record."
-                    )
-
-                    st.caption(str(e))
-
-
-# =========================================================
-# Work History
-# =========================================================
-
-try:
-
-    all_records = get_work_history()
-
-except Exception as e:
-
-    all_records = []
-
-    st.error(
-        "Unable to load work history from Supabase."
-    )
-
-    st.caption(str(e))
-
-
-previous_records = []
-
-for record in all_records:
-
-    record_date = datetime.date.fromisoformat(
-        record["work_date"]
-    )
-
-    if not (
-        start_date
-        <= record_date
-        <= end_date
-    ):
-
-        previous_records.append(record)
-
-
-st.divider()
-
-with st.expander(
-    f"📚 Work History ({len(previous_records)})",
-    expanded=False
-):
-
-    if not previous_records:
-
-        st.caption(
-            "No previous records."
-        )
-
-    else:
-
-        for record in previous_records:
-
-            work_date = datetime.date.fromisoformat(
-                record["work_date"]
-            )
-
-            start_time = datetime.time.fromisoformat(
-                normalize_time(
-                    record["start_time"]
-                )
-            )
-
-            end_time = datetime.time.fromisoformat(
-                normalize_time(
-                    record["end_time"]
-                )
-            )
-
-            hours = float(
-                record.get(
-                    "total_hours",
-                    0
-                ) or 0
-            )
-
-            break_minutes = int(
-                record.get(
-                    "break_minutes",
-                    0
-                ) or 0
-            )
-
-            notes = record.get("notes")
-
-            notes_html = ""
-
-            if notes:
-
-                safe_notes = html.escape(
-                    str(notes)
-                )
-
-                notes_html = (
-                    f'<div class="record-detail">'
-                    f'Notes: {safe_notes}'
-                    f'</div>'
-                )
-
-            st.html(
-                f"""
-<div class="record-card">
-
-<div class="record-header">
-
-<div class="record-date">
-{format_date(work_date)}
-</div>
-
-<div class="record-hours">
-{hours:.2f} h
-</div>
-
-</div>
-
-<div class="record-time">
-{format_time(start_time)}
-→
-{format_time(end_time)}
-</div>
-
-<div class="record-detail">
-Break: {break_minutes} min
-</div>
-
-{notes_html}
-
-</div>
-"""
-            )
